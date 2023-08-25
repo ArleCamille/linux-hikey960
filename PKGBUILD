@@ -20,6 +20,7 @@ source=("http://www.kernel.org/pub/linux/kernel/v6.x/${_srcname}.tar.xz"
 	'0001-net-smsc95xx-Allow-mac-address-to-be-set-as-a-parame.patch'
 	'0002-arm64-dts-rockchip-disable-pwm0-on-rk3399-firefly.patch'
 	'0003-Add-Bifrost-driver-menu-entry.patch'
+	'0004-include-Mali-GPU.patch'
 	'config'
 	'linux.preset'
 	'60-linux.hook'
@@ -29,7 +30,8 @@ md5sums=('787862593d7bf354cf1a5c37e21fc147'
 	 'fe6f79845ca9fbd1fd50e58e8f447fa1'
 	 '7b08a199a97e3e2288e5c03d8e8ded2d'
          'c9d4e392555b77034e24e9f87c5ff0b3'
-	 '206dfaacf451dce1ad41f95353080682'
+	 '86b1916bd691c11fd9642d841e26ff38'
+	 '61ddd8d1586f6223acdb21311b292a45'
 	 'SKIP' # TODO: modify
 	 '41cb5fef62715ead2dd109dbea8413d6'
          '0a5f16bfec6ad982a2f6782724cca8ba'
@@ -55,6 +57,7 @@ prepare() {
 
 	# apply patch
 	git apply ../0003-Add-Bifrost-driver-menu-entry.patch
+	git apply ../0004-include-Mali-GPU.patch
 
 	cat "${srcdir}/config" > ./.config
 }
