@@ -1,0 +1,25 @@
+From 162a39abc20c6b1c8e6197e677f8e435fdab4bc9 Mon Sep 17 00:00:00 2001
+From: Hyeseon Oh <okw1003@gmail.com>
+Date: Fri, 25 Aug 2023 06:01:07 +0900
+Subject: [PATCH] Add Bifrost driver meny entry
+
+---
+ drivers/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 968bd0a..85acb37 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -231,6 +231,8 @@ source "drivers/siox/Kconfig"
+ 
+ source "drivers/slimbus/Kconfig"
+ 
++source "drivers/gpu/arm/midgard/Kconfig"
++
+ source "drivers/interconnect/Kconfig"
+ 
+ source "drivers/counter/Kconfig"
+-- 
+2.42.0
+
