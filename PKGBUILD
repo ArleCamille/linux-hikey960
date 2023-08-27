@@ -62,6 +62,7 @@ build() {
 	make -s kernelrelease > version
 
 	# build!
+	exit 1
 	unset LDFLAGS
 	make ${MAKEFLAGS} Image Image.gz modules
 	# Generate device tree blobs with symbols to support applying device tree overlays in U-Boot
