@@ -15,7 +15,7 @@ license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'dtc')
 options=('!strip')
 source=("http://www.kernel.org/pub/linux/kernel/v6.x/${_srcname}.tar.xz"
-	"http://www.kernel.org/pub/linux/kernel/v6.x/patch-${_linuxver}.xz"
+	"http://www.kernel.org/pub/linux/kernel/v6.x/patch-${pkgver}.xz"
 	'0001-net-smsc95xx-Allow-mac-address-to-be-set-as-a-parame.patch'
 	'0002-arm64-dts-rockchip-disable-pwm0-on-rk3399-firefly.patch'
 	'0003-include-Mali-GPU.patch'
@@ -42,7 +42,7 @@ prepare() {
 	echo "${pkgbase#linux}" > localversion.20-pkgname
 
 	# add upstream patch
-	git apply --whitespace=nowarn ../patch-${_linuxver}
+	git apply --whitespace=nowarn ../patch-${pkgver}
 
 	# ALARM patches
 	git apply ../0001-net-smsc95xx-Allow-mac-address-to-be-set-as-a-parame.patch
@@ -69,11 +69,11 @@ build() {
 }
 
 _package() {
-	pkgver="${_linuxver}"
+	pkgver="${pkgver}"
 	pkgdesc="The Linux kernel and modules - ${_desc}"
 	depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
 	optdepends=('wireless-regdb: to set the correct wireless channels of your country')
-	provides=("linux=${_linuxver}" "WIREGUARD-MODULE")
+	provides=("linux=${pkgver}" "WIREGUARD-MODULE")
 	conflicts=('linux')
 	backup=("etc/mkinitcpio.d/${pkgbase}.preset")
 	install=${pkgname}.install
@@ -110,9 +110,8 @@ _package() {
 }
 
 _package-headers() {
-	pkgver="${_linuxver}"
 	pkgdesc="Header files and scripts for building modules for Linux kernsl - ${_desc}"
-	provides=("linux-headers=${_linuxver}")
+	provides=("linux-headers=${pkgver}")
 	conflicts=('linux-headers')
 
 	cd $_srcname
