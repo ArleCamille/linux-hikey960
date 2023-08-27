@@ -42,7 +42,7 @@ prepare() {
 	echo "${pkgbase#linux}" > localversion.20-pkgname
 
 	# add upstream patch
-	git apply --whitespace=nowarn ../patch-${pkgver}
+	git apply --whitespace=nowarn ../patch-${pkgver} --directory 
 
 	# ALARM patches
 	git apply ../0001-net-smsc95xx-Allow-mac-address-to-be-set-as-a-parame.patch
