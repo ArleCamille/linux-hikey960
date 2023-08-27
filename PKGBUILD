@@ -6,31 +6,27 @@ buildarch=8
 pkgbase=linux-hikey960
 _srcname=linux-6.2
 _kernelname=${pkgbase#linux}
-_desc="AArch64 HiKey960 with Bifrost kernel driver"
+_desc="AArch64 HiKey960"
 pkgver=6.2.10
-pkgrel=1
+pkgrel=2
 arch=('aarch64')
 url="http://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'dtc')
 options=('!strip')
 source=("http://www.kernel.org/pub/linux/kernel/v6.x/${_srcname}.tar.xz"
-	"http://www.kernel.org/pub/linux/kernel/v6.x/patch-${pkgver}.xz"
-	'BX304L01B-SW-99002-r44p0-01eac0.tar::https://developer.arm.com/-/media/Files/downloads/mali-drivers/kernel/mali-bifrost-gpu/BX304L01B-SW-99002-r44p0-01eac0.tar?rev=5e09ea55e10b41c5beb7cc0f7d4457dc&revision=5e09ea55-e10b-41c5-beb7-cc0f7d4457dc'
+	"http://www.kernel.org/pub/linux/kernel/v6.x/patch-${_linuxver}.xz"
 	'0001-net-smsc95xx-Allow-mac-address-to-be-set-as-a-parame.patch'
 	'0002-arm64-dts-rockchip-disable-pwm0-on-rk3399-firefly.patch'
-	'0003-Add-Bifrost-driver-menu-entry.patch'
-	'0004-include-Mali-GPU.patch'
+	'0003-include-Mali-GPU.patch'
 	'config'
 	'linux.preset'
 	'60-linux.hook'
 	'90-linux.hook')
 md5sums=('787862593d7bf354cf1a5c37e21fc147'
 	 'e0221ea0e6eeb147c29d2fd72e987ed5'
-	 'fe6f79845ca9fbd1fd50e58e8f447fa1'
 	 '7b08a199a97e3e2288e5c03d8e8ded2d'
          'c9d4e392555b77034e24e9f87c5ff0b3'
-	 '86b1916bd691c11fd9642d841e26ff38'
 	 '61ddd8d1586f6223acdb21311b292a45'
 	 'SKIP' # TODO: modify
 	 '41cb5fef62715ead2dd109dbea8413d6'
@@ -46,18 +42,14 @@ prepare() {
 	echo "${pkgbase#linux}" > localversion.20-pkgname
 
 	# add upstream patch
-	git apply --whitespace=nowarn ../patch-${pkgver}
+	git apply --whitespace=nowarn ../patch-${_linuxver}
 
 	# ALARM patches
 	git apply ../0001-net-smsc95xx-Allow-mac-address-to-be-set-as-a-parame.patch
 	git apply ../0002-arm64-dts-rockchip-disable-pwm0-on-rk3399-firefly.patch
 
-	# Bifrost driver
-	cp -r $srcdir/driver/product/kernel/{drivers,include} ./
-
 	# apply patch
-	git apply ../0003-Add-Bifrost-driver-menu-entry.patch
-	git apply ../0004-include-Mali-GPU.patch
+	git apply ../0003-include-Mali-GPU.patch
 
 	cat "${srcdir}/config" > ./.config
 }
@@ -77,10 +69,11 @@ build() {
 }
 
 _package() {
+	pkgver="${_linuxver}"
 	pkgdesc="The Linux kernel and modules - ${_desc}"
 	depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
 	optdepends=('wireless-regdb: to set the correct wireless channels of your country')
-	provides=("linux=${pkgver}" "WIREGUARD-MODULE")
+	provides=("linux=${_linuxver}" "WIREGUARD-MODULE")
 	conflicts=('linux')
 	backup=("etc/mkinitcpio.d/${pkgbase}.preset")
 	install=${pkgname}.install
@@ -117,8 +110,9 @@ _package() {
 }
 
 _package-headers() {
+	pkgver="${_linuxver}"
 	pkgdesc="Header files and scripts for building modules for Linux kernsl - ${_desc}"
-	provides=("linux-headers=${pkgver}")
+	provides=("linux-headers=${_linuxver}")
 	conflicts=('linux-headers')
 
 	cd $_srcname
