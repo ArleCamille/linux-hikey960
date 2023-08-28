@@ -1,0 +1,369 @@
+From c18b36e29f95312321b5fe1a7192995bf9bd92ad Mon Sep 17 00:00:00 2001
+From: Hyeseon Oh <okw1003@gmail.com>
+Date: Mon, 28 Aug 2023 03:27:17 +0900
+Subject: [PATCH] HiKey960 DTS modification
+
+---
+ arch/arm64/boot/dts/hisilicon/hi3660-drm.dtsi | 114 ++++++++++++
+ .../boot/dts/hisilicon/hi3660-hikey960.dts    |  10 +
+ arch/arm64/boot/dts/hisilicon/hi3660.dtsi     | 172 +++++++++++++++++-
+ 3 files changed, 292 insertions(+), 4 deletions(-)
+ create mode 100644 arch/arm64/boot/dts/hisilicon/hi3660-drm.dtsi
+
+diff --git a/arch/arm64/boot/dts/hisilicon/hi3660-drm.dtsi b/arch/arm64/boot/dts/hisilicon/hi3660-drm.dtsi
+new file mode 100644
+index 000000000..c7f497c8e
+--- /dev/null
++++ b/arch/arm64/boot/dts/hisilicon/hi3660-drm.dtsi
+@@ -0,0 +1,114 @@
++/{
++		dpe: dpe@E8600000 {
++			compatible = "hisilicon,hi3660-dpe";
++			status = "ok";
++
++			reg = <0x0 0xE8600000 0x0 0x80000>,
++					<0x0 0xFFF35000 0 0x1000>,
++					<0x0 0xFFF0A000 0 0x1000>,
++					<0x0 0xFFF31000 0 0x1000>,
++					<0x0 0xE86C0000 0 0x10000>;
++			interrupts = <0 245 4>;
++
++			clocks = <&crg_ctrl HI3660_ACLK_GATE_DSS>,
++				<&crg_ctrl HI3660_PCLK_GATE_DSS>,
++				<&crg_ctrl HI3660_CLK_GATE_EDC0>,
++				<&crg_ctrl HI3660_CLK_GATE_LDI0>,
++				<&crg_ctrl HI3660_CLK_GATE_LDI1>,
++				<&sctrl HI3660_CLK_GATE_DSS_AXI_MM>,
++				<&sctrl HI3660_PCLK_GATE_MMBUF>;
++			clock-names = "aclk_dss",
++					"pclk_dss",
++					"clk_edc0",
++					"clk_ldi0",
++					"clk_ldi1",
++					"clk_dss_axi_mm",
++					"pclk_mmbuf";
++
++			dma-coherent;
++
++			port {
++				dpe_out: endpoint {
++					remote-endpoint = <&dsi_in>;
++				};
++			};
++
++			iommu_info {
++				start-addr = <0x8000>;
++				size = <0xbfff8000>;
++			};
++		};
++
++		dsi: dsi@E8601000 {
++			compatible = "hisilicon,hi3660-dsi";
++			status = "ok";
++
++			reg = <0 0xE8601000 0 0x7F000>,
++					<0 0xFFF35000 0 0x1000>;
++
++			clocks = <&crg_ctrl HI3660_CLK_GATE_TXDPHY0_REF>,
++					<&crg_ctrl HI3660_CLK_GATE_TXDPHY1_REF>,
++					<&crg_ctrl HI3660_CLK_GATE_TXDPHY0_CFG>,
++					<&crg_ctrl HI3660_CLK_GATE_TXDPHY1_CFG>,
++					<&crg_ctrl HI3660_PCLK_GATE_DSI0>,
++					<&crg_ctrl HI3660_PCLK_GATE_DSI1>;
++			clock-names = "clk_txdphy0_ref",
++						"clk_txdphy1_ref",
++						"clk_txdphy0_cfg",
++						"clk_txdphy1_cfg",
++						"pclk_dsi0",
++						"pclk_dsi1";
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++			mux-gpio = <&gpio2 4 0>;
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@0 {
++					reg = <0>;
++					dsi_in: endpoint {
++						remote-endpoint = <&dpe_out>;
++					};
++				};
++
++				port@1 {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					reg = <1>;
++
++					dsi_out0: endpoint@0 {
++						reg = <0>;
++						remote-endpoint = <&adv7533_in>;
++					};
++
++					dsi_out1: endpoint@1 {
++						reg = <1>;
++						remote-endpoint = <&panel0_in>;
++					};
++				};
++			};
++
++			panel@1 {
++				compatible = "hisilicon,mipi-hikey";
++				#address-cells = <2>;
++				#size-cells = <2>;
++				status = "ok";
++				reg = <1>;
++				panel-width-mm = <94>;
++				panel-height-mm = <151>;
++				vdd-supply = <&ldo3>;
++				pwr-en-gpio = <&gpio27 0 0>;
++				bl-en-gpio = <&gpio27 2 0>;
++				pwm-gpio = <&gpio22 6 0>;
++
++				port {
++					panel0_in: endpoint {
++						remote-endpoint = <&dsi_out1>;
++					};
++				};
++			};
++		};
++};
+diff --git a/arch/arm64/boot/dts/hisilicon/hi3660-hikey960.dts b/arch/arm64/boot/dts/hisilicon/hi3660-hikey960.dts
+index 222ebfddd..5f78e9368 100644
+--- a/arch/arm64/boot/dts/hisilicon/hi3660-hikey960.dts
++++ b/arch/arm64/boot/dts/hisilicon/hi3660-hikey960.dts
+@@ -10,6 +10,7 @@
+ 
+ #include "hi3660.dtsi"
+ #include "hi3660-gpu.dtsi"
++#include "hi3660-drm.dtsi"
+ #include "hikey960-pinctrl.dtsi"
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
+@@ -696,3 +697,12 @@ dwc3_ss: endpoint@1 {
+ 		};
+ 	};
+ };
++
++&ufs {
++	ufs-hi3660-use-rate-B;
++	ufs-hi3660-broken-fastauto;
++	ufs-hi3660-use-HS-GEAR3;
++	ufs-hi3660-broken-clk-gate-bypass;
++	reset-gpio = <&gpio18 1 0>;
++	status = "okay";
++};
++
+diff --git a/arch/arm64/boot/dts/hisilicon/hi3660.dtsi b/arch/arm64/boot/dts/hisilicon/hi3660.dtsi
+index a57f35eb5..3333f6db4 100644
+--- a/arch/arm64/boot/dts/hisilicon/hi3660.dtsi
++++ b/arch/arm64/boot/dts/hisilicon/hi3660.dtsi
+@@ -332,6 +332,51 @@ IRQ_TYPE_LEVEL_LOW)>,
+ 					  IRQ_TYPE_LEVEL_LOW)>;
+ 	};
+ 
++	/* display start */
++	framebuffer@E8600000 {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		compatible = "hisilicon,hisifb";
++		fastboot_enable_flag = <0>;
++		fake_lcd_flag = <0>;
++		dss_base_phy = <0xE8600000>;
++		/*DSS, PERI_CRG, SCTRL, PCTRL, NOC_DSS_Service_Target, MMBUF_CFG*/
++		reg = <0 0xE8600000 0 0x80000>, <0 0xFFF35000 0 0x1000>, <0 0xFFF0A000 0 0x1000>, <0 0xE8A09000 0 0x1000>,
++				<0 0xE86C0000 0 0x10000>, <0 0xFFF02000 0 0x1000>, <0 0xFFF31000 0 0x1000>;
++		/*dss-pdp, dss-sdp, dss-adp, dss-dsi0, dss-dsi1 irq*/
++		interrupts = <0 245 4>, <0 246 4>, <0 247 4>, <0 251 4>, <0 252 4>;
++
++		clocks = <&crg_ctrl HI3660_ACLK_GATE_DSS>, <&crg_ctrl HI3660_PCLK_GATE_DSS>, <&crg_ctrl HI3660_CLK_GATE_EDC0>,
++				<&crg_ctrl HI3660_CLK_GATE_LDI0>, <&crg_ctrl HI3660_CLK_GATE_LDI1>, <&sctrl HI3660_CLK_GATE_DSS_AXI_MM>,
++				<&sctrl HI3660_PCLK_GATE_MMBUF>, <&crg_ctrl HI3660_CLK_GATE_TXDPHY0_REF>, <&crg_ctrl HI3660_CLK_GATE_TXDPHY1_REF>,
++				<&crg_ctrl HI3660_CLK_GATE_TXDPHY0_CFG>, <&crg_ctrl HI3660_CLK_GATE_TXDPHY1_CFG>, <&crg_ctrl HI3660_PCLK_GATE_DSI0>,
++				<&crg_ctrl HI3660_PCLK_GATE_DSI1>;
++		clock-names = "aclk_dss", "pclk_dss", "clk_edc0", "clk_ldi0", "clk_ldi1",
++				"clk_dss_axi_mm", "pclk_mmbuf",
++				"clk_txdphy0_ref", "clk_txdphy1_ref", "clk_txdphy0_cfg", "clk_txdphy1_cfg",
++				"pclk_dsi0", "pclk_dsi1";
++		status = "disabled";
++
++		/*iommu_info {
++			start-addr = <0x8000>;
++			size = <0xbfff8000>;
++		};*/
++	};
++
++	panel_lcd_hikey {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		compatible = "hisilicon,mipi_hikey";
++		lcd-bl-type = <0>;
++		lcd-display-type = <8>;
++		//vdd-supply = <&ldo3>;
++		lcd-ifbc-type = <0>;
++		gpios = <&gpio27 0 0>, <&gpio27 2 0>, <&gpio22 6 0>, <&gpio2 4 0>;
++		gpio_nums = <216 218 182 20>;
++		status = "disabled";
++	};
++	/* display end */
++
+ 	soc {
+ 		compatible = "simple-bus";
+ 		#address-cells = <2>;
+@@ -433,7 +478,105 @@ i2c1: i2c@ffd72000 {
+ 			resets = <&iomcu_rst 0x20 4>;
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&i2c1_pmx_func &i2c1_cfg_func>;
+-			status = "disabled";
++			status = "ok";
++
++			rt1711@4e {
++				compatible = "richtek,rt1711";
++				reg = <0x4e>;
++				status = "ok";
++				rt1711,irq_pin = <&gpio27 3 0>;
++				pinctrl-names = "default";
++				pinctrl-0 = <&usb_cfg_func>;
++				/* 0: dfp/ufp, 1: dfp, 2: ufp */
++				rt-dual,supported_modes = <0>;
++				/* tcpc_device's name */
++				rt-tcpc,name = "type_c_port0";
++				/* 0: SNK Only, 1: SRC Only, 2: DRP, 3: Try.SRC, 4: Try.SNK */
++				rt-tcpc,role_def = <2>;
++				/* 0: Default, 1: 1.5, 2: 3.0 */
++				rt-tcpc,rp_level = <0>;
++				/* the number of notifier supply */
++				rt-tcpc,notifier_supply_num = <0>;
++				pd-data {
++					pd,source-pdo-size = <1>;
++					/*<0x019014>;*/
++					pd,source-pdo-data = <0x00019064>;
++
++					pd,sink-pdo-size = <2>;
++					/* 0x0002d0c8 : 9V, 2A */
++					pd,sink-pdo-data = <0x000190c8 0x0002d0c8> ;
++
++					pd,id-vdo-size = <3>;
++					pd,id-vdo-data = <0xd00029cf 0x0 0x00010000>;
++				};
++				dpm_caps {
++					local_dr_power;
++					local_dr_data;
++					// local_ext_power;
++					local_usb_comm;
++					// local_usb_suspend;
++					// local_high_cap;
++					// local_give_back;
++					// local_no_suspend;
++					local_vconn_supply;
++
++					// attemp_enter_dp_mode;
++					attemp_discover_cable;
++					attemp_discover_id;
++
++					/* 0: disable, 1: prefer_snk, 2: prefer_src */
++					pr_check = <0>;
++					// pr_reject_as_source;
++					// pr_reject_as_sink;
++					pr_check_gp_source;
++					// pr_check_gp_sink;
++
++					/* 0: disable, 1: prefer_ufp, 2: prefer_dfp */
++					dr_check = <0>;
++					// dr_reject_as_dfp;
++					// dr_reject_as_ufp;
++
++					snk_prefer_low_voltage;
++					snk_ignore_mismatch_current;
++				};
++			};
++			adv7533: adv7533@39 {
++				status = "ok";
++				compatible = "adi,adv7533";
++				reg = <0x39>;
++				v1p2-supply = <&ldo3>;
++				vdd-supply = <&ldo3>;
++				interrupt-parent = <&gpio1>;
++				interrupts = <1 2>;
++				pd-gpio = <&gpio5 1 0>;
++				sel-gpio = <&gpio2 4 0>;
++				adi,dsi-lanes = <4>;
++				adi,disable-timing-generator;
++
++				port {
++					adv7533_in: endpoint {
++						remote-endpoint = <&dsi_out0>;
++					};
++				};
++			};
++		};
++
++		pd_dpm {
++			compatible = "hisilicon,pd_dpm";
++			tcp_name = "type_c_port0";
++			status = "ok";
++		};
++
++		hubv2: gpio_hubv2 {
++			compatible = "hisilicon,gpio_hubv2";
++			typc_vbus_int_gpio,typec-gpios = <&gpio25 2 0>;
++			typc_vbus_enable_val = <1>;
++			otg_gpio = <&gpio25 6 0>;
++			hub_vdd12_en_gpio = <&gpio2 1 0>;
++			hub_vdd33_en_gpio = <&gpio5 6 0>;
++			hub_reset_en_gpio = <&gpio4 4 0>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&usbhub5734_pmx_func>;
+ 		};
+ 
+ 		i2c3: i2c@fdf0c000 {
+@@ -1056,10 +1199,17 @@ ufs: ufs@ff3b0000 {
+ 
+ 		/* SD */
+ 		dwmmc1: dwmmc1@ff37f000 {
+-			compatible = "hisilicon,hi3660-dw-mshc";
+-			reg = <0x0 0xff37f000 0x0 0x1000>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			cd-inverted;
++			compatible = "hisilicon,hi3660-dw-mshc";
++			num-slots = <1>;
++			bus-width = <0x4>;
++			disable-wp;
++			cap-sd-highspeed;
++			supports-highspeed;
++			card-detect-delay = <200>;
++			reg = <0x0 0xff37f000 0x0 0x1000>;
+ 			interrupts = <GIC_SPI 139 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&crg_ctrl HI3660_CLK_GATE_SD>,
+ 				<&crg_ctrl HI3660_HCLK_GATE_SD>;
+@@ -1067,9 +1217,23 @@ dwmmc1: dwmmc1@ff37f000 {
+ 			clock-frequency = <3200000>;
+ 			resets = <&crg_rst 0x94 18>;
+ 			reset-names = "reset";
++			cd-gpios = <&gpio25 3 0>;
+ 			hisilicon,peripheral-syscon = <&sctrl>;
+-			card-detect-delay = <200>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&sd_pmx_func
++				     &sd_clk_cfg_func
++				     &sd_cfg_func>;
++			sd-uhs-sdr12;
++			sd-uhs-sdr25;
++			sd-uhs-sdr50;
++			sd-uhs-sdr104;
+ 			status = "disabled";
++
++			slot@0 {
++				reg = <0x0>;
++				bus-width = <4>;
++				disable-wp;
++			};
+ 		};
+ 
+ 		/* SDIO */
+-- 
+2.42.0
+
